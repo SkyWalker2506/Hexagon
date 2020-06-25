@@ -12,7 +12,6 @@ public class HexCellController : Singleton<HexCellController>
   public HexCell[][] BoardCells;
   internal static RectTransform chosenParent;
   HexObject[] chosenObjects = new HexObject[3];
-  List<HexCell> currentNeighbourMatches=new List<HexCell>();
   Stack<HexObject> collectedObjects = new Stack<HexObject>();
   bool isRotating = false;
   [SerializeField]
@@ -108,7 +107,7 @@ public class HexCellController : Singleton<HexCellController>
       yield return StartCoroutine(IERotateClockwise());
       if (CheckAndSetCollectableObjects())
       {
-        yield return StartCoroutine(IERelocateHexCell());
+         StartCoroutine(IERelocateHexCell());
         DeselectAllHexObject();
         yield return IECheckAndCollectAllMatched();
         ActionSystem.OnMoveMade?.Invoke();
@@ -124,7 +123,7 @@ public class HexCellController : Singleton<HexCellController>
       yield return StartCoroutine(IERotateCounterClockwise());
       if (CheckAndSetCollectableObjects())
       {
-        yield return StartCoroutine(IERelocateHexCell());
+         StartCoroutine(IERelocateHexCell());
         DeselectAllHexObject();
         yield return IECheckAndCollectAllMatched();
         ActionSystem.OnMoveMade?.Invoke();
@@ -211,6 +210,7 @@ public class HexCellController : Singleton<HexCellController>
       matchedTransform.parent = BoardPanel;
       ParticleController.Instance.ShowCollectedParticle(matchedTransform.position);
       matchedTransform.position += Vector3.up * Screen.height*1.5f;
+      if(!collectedObjects.Contains(hexObject))
       collectedObjects.Push(hexObject);
       GameManager.IncreaseScore(5);
       hexObject.ResetHexObject();
@@ -268,18 +268,18 @@ public class HexCellController : Singleton<HexCellController>
 
   IEnumerator IECheckAndCollectAllMatched()
   {
+   // yield break;
     for (int i = 0; i < BoardCells.Length; i++)
     {
       for (int j = 0; j < BoardCells[i].Length; j++)
       {
         CollectMatched(BoardHelper.GetAllMatchedCells(BoardCells, new Vector2(i, j)));
-      }
-    }
-    print(collectedObjects.Count);
-    if(CheckAndSetCollectableObjects())
-    {
-       yield return StartCoroutine(IERelocateHexCell());
-       yield return IECheckAndCollectAllMatched();
+                if (CheckAndSetCollectableObjects())
+                {
+                    yield return StartCoroutine(IERelocateHexCell());
+                    yield return IECheckAndCollectAllMatched();
+                }
+            }
     }
   }
 
